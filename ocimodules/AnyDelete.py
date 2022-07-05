@@ -32,9 +32,9 @@ def DeleteAny(config, signer, Compartments, ServiceClient, ServiceName, ServiceI
     
     if PerAD:
         identity = oci.identity.IdentityClient(config, signer=signer)
-    items = []
     
-    print("Getting all {} objects".format(ServiceName), end="\r")
+    print("Getting all {} objects                 ".format(ServiceName), end="\r")
+    items = []
     for C in Compartments:
         Compartment = C.details
         try:
@@ -53,8 +53,10 @@ def DeleteAny(config, signer, Compartments, ServiceClient, ServiceName, ServiceI
         
         except oci.exceptions.ServiceError as response:
             if response.code == 404:
-                print("No items found in compartment {}".format(Compartment.name), end="\r")
-                items = []
+                print("No items found in compartment {}   ".format(Compartment.name), end="\r")
+            else:
+                print("error {}-{} trying to delete: {}".format(response.code, response.message, ServiceName))
+        
         for item in items:
             # Delete objects that do not have lifecycle management status
             if DelState == "":
@@ -85,7 +87,7 @@ def DeleteAny(config, signer, Compartments, ServiceClient, ServiceName, ServiceI
                         print("- {} - {}".format(eval("item.{}".format(ObjectNameVar)), item.lifecycle_state), end="\r")
         
         if DelState == "":
-            print("{} Objects deleted".format(ServiceName), end="\r")
+            print("{} Objects deleted                  ".format(ServiceName), end="\r")
         else:
             # Process queue of objects with a lifecycle object
             if len(AllItems) > 0:
@@ -112,9 +114,9 @@ def DeleteAny(config, signer, Compartments, ServiceClient, ServiceName, ServiceI
                                         print("ERROR: {}".format(response.code))
                                         print(" ")
                                         if response.code == 404:
-                                            print("Object deleted", end="\r")
+                                            print("Object deleted                     ", end="\r")
                                         elif response.code == "InvalidParameter":
-                                            print("Error invalid paratemer, likely can ignore", end="\r")
+                                            print("Error invalid paratemer, likely can ignore         ", end="\r")
                                             count = count - 1
                                         else:
                                             print("error {}-{} trying to delete: {} - {}".format(response.code,
@@ -127,7 +129,7 @@ def DeleteAny(config, signer, Compartments, ServiceClient, ServiceName, ServiceI
                                 count = count + 1
                         except oci.exceptions.ServiceError as response:
                             if response.code == 404:
-                                print("Object deleted", end="\r")
+                                print("Object deleted                              ", end="\r")
                             else:
                                 print("----------------->error {}-{} trying to delete: {} - {} ".format(response.code,
                                                                                                         response.message,
@@ -144,10 +146,10 @@ def DeleteAny(config, signer, Compartments, ServiceClient, ServiceName, ServiceI
                         iteration += 1
                         
                         if iteration >= MaxIDeleteIteration:
-                            print("Some {} not deleted, skipping!".format(ServiceName), end="\r")
+                            print("Some {} not deleted, skipping!                   ".format(ServiceName), end="\r")
                             return
                     else:
                         itemsPresent = False
-                print("All {} Objects deleted!".format(ServiceName), end="\r")
+                print("All {} Objects deleted!                    ".format(ServiceName), end="\r")
             else:
-                print("No {} Objects found".format(ServiceName), end="\r")
+                print("No {} Objects found                      ".format(ServiceName), end="\r")
