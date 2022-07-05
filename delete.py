@@ -20,6 +20,7 @@
 import sys
 import time
 import oci
+import os
 import platform
 import logging
 from ocimodules.functions import *
@@ -41,9 +42,9 @@ oci.circuit_breaker.NoCircuitBreakerStrategy()
 # Specify your config file
 # configfile = "~/.oci/config"  # Linux
 # configfile = "\\Users\\username\\.oci\\config"  # Windows
-configfile = r'C:\Users\ofirs\.oci\config'  # Windows
 if platform.system() == "Windows":
-    configfile = r'C:\Users\ofirs\.oci\config'
+    configfile = os.path.join('c:\\', 'Users', os.getlogin(), '.oci' ,"config")
+    print(configfile)
 else:
     configfile = r'~/.oci/config'  # Linux
 # Specify your config profile
