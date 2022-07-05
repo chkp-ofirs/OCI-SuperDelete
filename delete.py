@@ -32,21 +32,25 @@ from ocimodules.Logging import *
 from ocimodules.APM import *
 from ocimodules.AnyDelete import *
 
-#Disable OCI CircuitBreaker feature
+# Disable OCI CircuitBreaker feature
 oci.circuit_breaker.NoCircuitBreakerStrategy()
 
 #################################################
 #           Manual Configuration                #
 #################################################
 # Specify your config file
-configfile = "~/.oci/config"  # Linux
+# configfile = "~/.oci/config"  # Linux
 # configfile = "\\Users\\username\\.oci\\config"  # Windows
-
+configfile = r'C:\Users\ofirs\.oci\config'  # Windows
+if platform.system() == "Windows":
+    configfile = r'C:\Users\ofirs\.oci\config'
+else:
+    configfile = r'~/.oci/config'  # Linux
 # Specify your config profile
-configProfile = "DEFAULT"
+configProfile = 'DEFAULT'
 
 # Specify the DEFAULT compartment OCID that you want to delete, Leave Empty for no default
-DeleteCompartmentOCID = ""
+DeleteCompartmentOCID = 'ocid1.compartment.oc1..aaaaaaaazcltank4wxxhhvfusemwwlifpvdyoz2gnbflqahxxrkfyxo744lq'
 
 # Search for resources in regions, this is an Array, so you can specify multiple regions:
 # If no regions specified, it will be all subscribed regions.
@@ -66,7 +70,6 @@ debug = False
 # MyWriter to redirect output
 #############################################
 class MyWriter:
-
     filename = "log.txt"
 
     def __init__(self, stdout, filename):
@@ -86,8 +89,10 @@ class MyWriter:
         self.logfile.close()
         self.logfile = open(self.filename, "a", encoding="utf-8")
 
+
 def CurrentTimeString():
     return time.strftime("%D %H:%M:%S", time.localtime())
+
 
 ##########################################################################
 # Main Program
@@ -99,12 +104,11 @@ cmd = input_command_line()
 
 # Redirect output to log.txt
 logfile = cmd.log_file
-writer = MyWriter(sys.stdout, logfile)
-sys.stdout = writer
+# writer = MyWriter(sys.stdout, logfile)
+# sys.stdout = writer
 
-#configfile = cmd.config_file if cmd.config_file else configfile
+# configfile = cmd.config_file if cmd.config_file else configfile
 configProfile = cmd.config_profile if cmd.config_profile else configProfile
-
 
 debug = cmd.debug if cmd.debug else debug
 force = cmd.force
@@ -120,7 +124,7 @@ if DeleteCompartmentOCID == "":
 ######################################################
 # oci config and debug handle
 ######################################################
-#config = oci.config.from_file(configfile, configProfile)
+# config = oci.config.from_file(configfile, configProfile)
 config, signer = create_signer(cmd.config_profile, cmd.is_instance_principals, cmd.is_delegation_token)
 
 if debug:
@@ -170,7 +174,6 @@ print("\nCompartments to Process : \n")
 for c in processCompartments:
     print("  " + c.fullpath)
 
-
 #########################################
 # Check confirmation for execution
 #########################################
@@ -191,7 +194,7 @@ if confirm == "yes":
         config["region"] = region
 
         print_header("Moving and Scheduling KMS Vaults for deletion at " + CurrentTimeString() + "@ " + region, 1)
-        print ("Moving to: ".format(DeleteCompartmentOCID))
+        print("Moving to: ".format(DeleteCompartmentOCID))
         DeleteKMSvaults(config, signer, processCompartments, config['tenancy'])
 
         print_header("Deleting DevOps Projects at " + CurrentTimeString() + "@ " + region, 1)
@@ -199,7 +202,7 @@ if confirm == "yes":
         for element in elements:
             DeleteAny(config, signer, processCompartments, "devops.DevopsClient", element)
         DeleteAny(config, signer, processCompartments, "devops.DevopsClient", "repository", ObjectNameVar="name")
-        DeleteAny(config, signer, processCompartments, "devops.DevopsClient", "project", ObjectNameVar= "name")
+        DeleteAny(config, signer, processCompartments, "devops.DevopsClient", "project", ObjectNameVar="name")
 
         print_header("Deleting Oracle Cloud VMware solution at " + CurrentTimeString() + "@ " + region, 1)
         DeleteAny(config, signer, processCompartments, "ocvp.SddcClient", "sddc")
@@ -215,27 +218,36 @@ if confirm == "yes":
             DeleteAny(config, signer, processCompartments, "golden_gate.GoldenGateClient", element)
 
         print_header("Deleting Vulnerability Scanning Services at " + CurrentTimeString() + "@ " + region, 1)
-        elements = ["host_agent_scan_result", "host_port_scan_result", "host_cis_benchmark_scan_result", "container_scan_result"]
+        elements = ["host_agent_scan_result", "host_port_scan_result", "host_cis_benchmark_scan_result",
+                    "container_scan_result"]
         for element in elements:
-            DeleteAny(config, signer, processCompartments, "vulnerability_scanning.VulnerabilityScanningClient", element, DelState="", DelingSate="")
-        DeleteAny(config, signer, processCompartments, "vulnerability_scanning.VulnerabilityScanningClient", "host_scan_target")
-        DeleteAny(config, signer, processCompartments, "vulnerability_scanning.VulnerabilityScanningClient", "container_scan_target")
+            DeleteAny(config, signer, processCompartments, "vulnerability_scanning.VulnerabilityScanningClient",
+                      element, DelState="", DelingSate="")
+        DeleteAny(config, signer, processCompartments, "vulnerability_scanning.VulnerabilityScanningClient",
+                  "host_scan_target")
+        DeleteAny(config, signer, processCompartments, "vulnerability_scanning.VulnerabilityScanningClient",
+                  "container_scan_target")
         elements = ["host_scan_recipe", "container_scan_recipe"]
         for element in elements:
-            DeleteAny(config, signer, processCompartments, "vulnerability_scanning.VulnerabilityScanningClient", element, DelState="", DelingSate="")
+            DeleteAny(config, signer, processCompartments, "vulnerability_scanning.VulnerabilityScanningClient",
+                      element, DelState="", DelingSate="")
 
         print_header("Deleting Bastion Services at " + CurrentTimeString() + "@ " + region, 1)
-        DeleteAny(config, signer, processCompartments, "bastion.BastionClient", "bastion", ObjectNameVar= "name")
+        DeleteAny(config, signer, processCompartments, "bastion.BastionClient", "bastion", ObjectNameVar="name")
 
         if region == homeregion:
             print_header("Deleting Edge Services at " + CurrentTimeString() + "@ " + region, 1)
             DeleteAny(config, signer, processCompartments, "waas.WaasClient", "waas_policy")
-            DeleteAny(config, signer, processCompartments, "healthchecks.HealthChecksClient", "http_monitor", ServiceID="monitor_id", DelState="", DelingSate="")
-            DeleteAny(config, signer, processCompartments, "healthchecks.HealthChecksClient", "ping_monitor", ServiceID="monitor_id", DelState="", DelingSate="")
+            DeleteAny(config, signer, processCompartments, "healthchecks.HealthChecksClient", "http_monitor",
+                      ServiceID="monitor_id", DelState="", DelingSate="")
+            DeleteAny(config, signer, processCompartments, "healthchecks.HealthChecksClient", "ping_monitor",
+                      ServiceID="monitor_id", DelState="", DelingSate="")
             DeleteAny(config, signer, processCompartments, "dns.DnsClient", "steering_policy_attachment")
             DeleteAny(config, signer, processCompartments, "dns.DnsClient", "steering_policy")
-            DeleteAny(config, signer, processCompartments, "dns.DnsClient", "zone", ObjectNameVar="name", ServiceID="zone_name_or_id")
-            DeleteAny(config, signer, processCompartments, "dns.DnsClient", "view", Extra=", scope=\"PRIVATE\"", Filter="protected")
+            DeleteAny(config, signer, processCompartments, "dns.DnsClient", "zone", ObjectNameVar="name",
+                      ServiceID="zone_name_or_id")
+            DeleteAny(config, signer, processCompartments, "dns.DnsClient", "view", Extra=", scope=\"PRIVATE\"",
+                      Filter="protected")
 
         print_header("Deleting Object Storage at " + CurrentTimeString() + "@ " + region, 1)
         DeleteBuckets(config, signer, processCompartments)
@@ -248,18 +260,22 @@ if confirm == "yes":
 
         print_header("Deleting Email Service at " + CurrentTimeString() + "@ " + region, 1)
         DeleteAny(config, signer, processCompartments, "email.EmailClient", "sender", ObjectNameVar="email_address")
-        DeleteAny(config, signer, processCompartments, "email.EmailClient", "suppression", ObjectNameVar="email_address", DelState="", DelingSate="")
+        DeleteAny(config, signer, processCompartments, "email.EmailClient", "suppression",
+                  ObjectNameVar="email_address", DelState="", DelingSate="")
         DeleteAny(config, signer, processCompartments, "email.EmailClient", "email_domain", ObjectNameVar="name")
 
         print_header("Deleting OKE Clusters at " + CurrentTimeString() + "@ " + region, 1)
-        DeleteAny(config, signer, processCompartments, "container_engine.ContainerEngineClient", "cluster", ObjectNameVar="name")
+        DeleteAny(config, signer, processCompartments, "container_engine.ContainerEngineClient", "cluster",
+                  ObjectNameVar="name")
 
         print_header("Deleting Repositories at " + CurrentTimeString() + "@ " + region, 1)
-        DeleteAny(config, signer, processCompartments, "artifacts.ArtifactsClient", "container_repository", ServiceID="repository_id")
+        DeleteAny(config, signer, processCompartments, "artifacts.ArtifactsClient", "container_repository",
+                  ServiceID="repository_id")
         DeleteAny(config, signer, processCompartments, "artifacts.ArtifactsClient", "repository")
 
         print_header("Deleting Auto Scaling Configurations at " + CurrentTimeString() + "@ " + region, 1)
-        DeleteAny(config, signer, processCompartments, "autoscaling.AutoScalingClient", "auto_scaling_configuration", DelState="", DelingSate="")
+        DeleteAny(config, signer, processCompartments, "autoscaling.AutoScalingClient", "auto_scaling_configuration",
+                  DelState="", DelingSate="")
 
         print_header("Deleting OS Management services at " + CurrentTimeString() + "@ " + region, 1)
         DeleteAny(config, signer, processCompartments, "os_management.OsManagementClient", "managed_instance_group")
@@ -267,15 +283,19 @@ if confirm == "yes":
         DeleteAny(config, signer, processCompartments, "os_management.OsManagementClient", "software_source")
 
         print_header("Deleting Compute Instances at " + CurrentTimeString() + "@ " + region, 1)
-        DeleteAny(config, signer, processCompartments, "core.ComputeManagementClient", "instance_pool", DeleteCommand="terminate_instance_pool", DelState="TERMINATED", DelingSate="TERMINATING")
-        DeleteAny(config, signer, processCompartments, "core.ComputeManagementClient", "instance_configuration", DelState="", DelingSate="")
-        DeleteAny(config, signer, processCompartments, "core.ComputeClient", "instance", DeleteCommand="terminate_instance", DelState="TERMINATED", DelingSate="TERMINATING")
+        DeleteAny(config, signer, processCompartments, "core.ComputeManagementClient", "instance_pool",
+                  DeleteCommand="terminate_instance_pool", DelState="TERMINATED", DelingSate="TERMINATING")
+        DeleteAny(config, signer, processCompartments, "core.ComputeManagementClient", "instance_configuration",
+                  DelState="", DelingSate="")
+        DeleteAny(config, signer, processCompartments, "core.ComputeClient", "instance",
+                  DeleteCommand="terminate_instance", DelState="TERMINATED", DelingSate="TERMINATING")
         DeleteAny(config, signer, processCompartments, "core.ComputeClient", "image")
         DeleteAny(config, signer, processCompartments, "core.ComputeClient", "dedicated_vm_host")
 
         print_header("Deleting Management Agents at " + CurrentTimeString() + "@ " + region, 1)
         DeleteAny(config, signer, processCompartments, "management_agent.ManagementAgentClient", "management_agent")
-        DeleteAny(config, signer, processCompartments, "management_agent.ManagementAgentClient", "management_agent_install_key")
+        DeleteAny(config, signer, processCompartments, "management_agent.ManagementAgentClient",
+                  "management_agent_install_key")
 
         print_header("Deleting Visual Builder Components at " + CurrentTimeString() + "@ " + region, 1)
         DeleteAny(config, signer, processCompartments, "visual_builder.VbInstanceClient", "vb_instance")
@@ -303,7 +323,8 @@ if confirm == "yes":
         DeleteAny(config, signer, processCompartments, "data_safe.DataSafeClient", "data_safe_private_endpoint")
 
         print_header("Deleting Log Analytics services at " + CurrentTimeString() + "@ " + region, 1)
-        DeleteAny(config, signer, processCompartments, "log_analytics.LogAnalyticsClient", "log_analytics_entity", ObjectNameVar="name", Extra=", namespace_name=\"{}\"".format(tenant_name))
+        DeleteAny(config, signer, processCompartments, "log_analytics.LogAnalyticsClient", "log_analytics_entity",
+                  ObjectNameVar="name", Extra=", namespace_name=\"{}\"".format(tenant_name))
 
         print_header("Deleting Data Catalog services at " + CurrentTimeString() + "@ " + region, 1)
         DeleteAny(config, signer, processCompartments, "data_catalog.DataCatalogClient", "catalog")
@@ -314,9 +335,11 @@ if confirm == "yes":
         DeleteAny(config, signer, processCompartments, "data_integration.DataIntegrationClient", "workspace")
 
         print_header("Deleting Oracle Databases at " + CurrentTimeString() + "@ " + region, 1)
-        DeleteAny(config, signer, processCompartments, "database.DatabaseClient", "db_system", DeleteCommand="terminate_db_system", DelState="TERMINATED", DelingSate="TERMINATING")
+        DeleteAny(config, signer, processCompartments, "database.DatabaseClient", "db_system",
+                  DeleteCommand="terminate_db_system", DelState="TERMINATED", DelingSate="TERMINATING")
         DeleteAny(config, signer, processCompartments, "database.DatabaseClient", "backup")
-        DeleteAny(config, signer, processCompartments, "database.DatabaseClient", "autonomous_database", DelState="TERMINATED", DelingSate="TERMINATING")
+        DeleteAny(config, signer, processCompartments, "database.DatabaseClient", "autonomous_database",
+                  DelState="TERMINATED", DelingSate="TERMINATING")
 
         print_header("Deleting MySQL Database Instances at " + CurrentTimeString() + "@ " + region, 1)
         DeleteAny(config, signer, processCompartments, "mysql.DbSystemClient", "db_system")
@@ -328,10 +351,13 @@ if confirm == "yes":
         DeleteAny(config, signer, processCompartments, "oda.OdaClient", "oda_instance")
 
         print_header("Deleting Analytics at " + CurrentTimeString() + "@ " + region, 1)
-        DeleteAny(config, signer, processCompartments, "analytics.AnalyticsClient", "analytics_instance", ObjectNameVar="name")
+        DeleteAny(config, signer, processCompartments, "analytics.AnalyticsClient", "analytics_instance",
+                  ObjectNameVar="name")
         DeleteAny(config, signer, processCompartments, "streaming.StreamAdminClient", "stream", ObjectNameVar="name")
-        DeleteAny(config, signer, processCompartments, "streaming.StreamAdminClient", "stream_pool", ObjectNameVar="name")
-        DeleteAny(config, signer, processCompartments, "streaming.StreamAdminClient", "connect_harness", ObjectNameVar="name")
+        DeleteAny(config, signer, processCompartments, "streaming.StreamAdminClient", "stream_pool",
+                  ObjectNameVar="name")
+        DeleteAny(config, signer, processCompartments, "streaming.StreamAdminClient", "connect_harness",
+                  ObjectNameVar="name")
         DeleteAny(config, signer, processCompartments, "sch.ServiceConnectorClient", "service_connector")
 
         print_header("Deleting Integration at " + CurrentTimeString() + "@ " + region, 1)
@@ -342,7 +368,8 @@ if confirm == "yes":
 
         print_header("Deleting Resource Manager Stacks at " + CurrentTimeString() + "@ " + region, 1)
         DeleteAny(config, signer, processCompartments, "resource_manager.ResourceManagerClient", "stack")
-        DeleteAny(config, signer, processCompartments, "resource_manager.ResourceManagerClient", "configuration_source_provider")
+        DeleteAny(config, signer, processCompartments, "resource_manager.ResourceManagerClient",
+                  "configuration_source_provider")
 
         print_header("Deleting Anomaly Detection Services at " + CurrentTimeString() + "@ " + region, 1)
         DeleteAny(config, signer, processCompartments, "ai_anomaly_detection.AnomalyDetectionClient", "data_asset")
@@ -355,29 +382,40 @@ if confirm == "yes":
         DeleteAny(config, signer, processCompartments, "data_flow.DataFlowClient", "run", DelState="SUCCEEDED")
 
         print_header("Deleting Block Volumes at " + CurrentTimeString() + "@ " + region, 1)
-        DeleteAny(config, signer, processCompartments, "core.BlockstorageClient", "volume", DelState="TERMINATED", DelingSate="TERMINATING", PerAD=True)
-        DeleteAny(config, signer, processCompartments, "core.BlockstorageClient", "volume_backup", DelState="TERMINATED", DelingSate="TERMINATING")
-        DeleteAny(config, signer, processCompartments, "core.BlockstorageClient", "boot_volume", DelState="TERMINATED", DelingSate="TERMINATING", PerAD=True)
-        DeleteAny(config, signer, processCompartments, "core.BlockstorageClient", "boot_volume_backup", DelState="TERMINATED", DelingSate="TERMINATING")
-        DeleteAny(config, signer, processCompartments, "core.BlockstorageClient", "volume_group", DelState="TERMINATED", DelingSate="TERMINATING")
-        DeleteAny(config, signer, processCompartments, "core.BlockstorageClient", "volume_group_backup", DelState="TERMINATED", DelingSate="TERMINATING")
-        DeleteAny(config, signer, processCompartments, "core.BlockstorageClient", "volume_backup_policy", DelState="", ServiceID="policy_id")
+        DeleteAny(config, signer, processCompartments, "core.BlockstorageClient", "volume", DelState="TERMINATED",
+                  DelingSate="TERMINATING", PerAD=True)
+        DeleteAny(config, signer, processCompartments, "core.BlockstorageClient", "volume_backup",
+                  DelState="TERMINATED", DelingSate="TERMINATING")
+        DeleteAny(config, signer, processCompartments, "core.BlockstorageClient", "boot_volume", DelState="TERMINATED",
+                  DelingSate="TERMINATING", PerAD=True)
+        DeleteAny(config, signer, processCompartments, "core.BlockstorageClient", "boot_volume_backup",
+                  DelState="TERMINATED", DelingSate="TERMINATING")
+        DeleteAny(config, signer, processCompartments, "core.BlockstorageClient", "volume_group", DelState="TERMINATED",
+                  DelingSate="TERMINATING")
+        DeleteAny(config, signer, processCompartments, "core.BlockstorageClient", "volume_group_backup",
+                  DelState="TERMINATED", DelingSate="TERMINATING")
+        DeleteAny(config, signer, processCompartments, "core.BlockstorageClient", "volume_backup_policy", DelState="",
+                  ServiceID="policy_id")
 
         print_header("Deleting FileSystem and Mount Targets at " + CurrentTimeString() + "@ " + region, 1)
-        DeleteAny(config, signer, processCompartments, "file_storage.FileStorageClient" , "mount_target", PerAD=True)
+        DeleteAny(config, signer, processCompartments, "file_storage.FileStorageClient", "mount_target", PerAD=True)
         DeleteAny(config, signer, processCompartments, "file_storage.FileStorageClient", "file_system", PerAD=True)
 
         print_header("Deleting VCNs at " + CurrentTimeString() + "@ " + region, 1)
         DeleteVCN(config, signer, processCompartments)
-        DeleteAny(config, signer, processCompartments, "core.VirtualNetworkClient", "local_peering_gateway", DelState="TERMINATED", DelingSate="TERMINATING")
-        DeleteAny(config, signer, processCompartments, "core.VirtualNetworkClient", "remote_peering_connection", DelState="TERMINATED", DelingSate="TERMINATING")
-        DeleteAny(config, signer, processCompartments, "core.VirtualNetworkClient", "drg", DelState="TERMINATED", DelingSate="TERMINATING")
+        DeleteAny(config, signer, processCompartments, "core.VirtualNetworkClient", "local_peering_gateway",
+                  DelState="TERMINATED", DelingSate="TERMINATING")
+        DeleteAny(config, signer, processCompartments, "core.VirtualNetworkClient", "remote_peering_connection",
+                  DelState="TERMINATED", DelingSate="TERMINATING")
+        DeleteAny(config, signer, processCompartments, "core.VirtualNetworkClient", "drg", DelState="TERMINATED",
+                  DelingSate="TERMINATING")
 
         print_header("Deleting Alarms at " + CurrentTimeString() + "@ " + region, 1)
         DeleteAny(config, signer, processCompartments, "monitoring.MonitoringClient", "alarm")
 
         print_header("Deleting Notifications at " + CurrentTimeString() + "@ " + region, 1)
-        DeleteAny(config, signer, processCompartments, "ons.NotificationControlPlaneClient", "topic", ObjectNameVar="name", ServiceID="topic_id", ReturnServiceID="topic_id")
+        DeleteAny(config, signer, processCompartments, "ons.NotificationControlPlaneClient", "topic",
+                  ObjectNameVar="name", ServiceID="topic_id", ReturnServiceID="topic_id")
 
         print_header("Deleting Events at " + CurrentTimeString() + "@ " + region, 1)
         DeleteAny(config, signer, processCompartments, "events.EventsClient", "rule")
@@ -385,8 +423,8 @@ if confirm == "yes":
         if region == homeregion:
             print_header("Deleting Policies at " + CurrentTimeString() + "@ " + region, 1)
             DeleteAny(config, signer, processCompartments, "identity.IdentityClient", "policy", ObjectNameVar="name")
-            DeleteAny(config, signer, processCompartments, "identity.IdentityClient", "dynamic_group", ObjectNameVar="name")
-
+            DeleteAny(config, signer, processCompartments, "identity.IdentityClient", "dynamic_group",
+                      ObjectNameVar="name")
 
         print_header("Deleting Log Groups at " + CurrentTimeString() + "@ " + region, 1)
         DeleteLogGroups(config, signer, processCompartments)

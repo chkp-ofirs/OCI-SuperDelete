@@ -39,6 +39,7 @@ def DeleteBuckets(config, signer, Compartments):
 
     print("All buckets deleted!")
 
+
 ###########################################
 # Delete Retention Rules
 ###########################################
@@ -49,7 +50,8 @@ def DeleteRetentionRules(config, signer, bucket):
 
     iteration = 0
     while more:
-        result = oci.pagination.list_call_get_all_results(object.list_retention_rules, namespace_name=bucket.namespace, bucket_name=bucket.name)
+        result = oci.pagination.list_call_get_all_results(object.list_retention_rules, namespace_name=bucket.namespace,
+                                                          bucket_name=bucket.name)
 
         items = result.data
         if len(items) == 0:
@@ -58,7 +60,8 @@ def DeleteRetentionRules(config, signer, bucket):
             for item in items:
                 print("Deleting {}:{}".format(bucket.name, item.display_name))
                 try:
-                    object.delete_retention_rule(namespace_name=bucket.namespace, bucket_name=bucket.name, retention_rule_id=item.id)
+                    object.delete_retention_rule(namespace_name=bucket.namespace, bucket_name=bucket.name,
+                                                 retention_rule_id=item.id)
                 except Exception as e:
                     print("error deleting retention rule : {} - {}".format(item.display_name, str(e)))
                     iteration += 1
@@ -87,7 +90,8 @@ def DeleteObjects(config, signer, bucket):
             for item in items:
                 print("Deleting {}:{}".format(bucket.name, item.name))
                 try:
-                    object.delete_object(namespace_name=bucket.namespace, bucket_name=bucket.name, object_name=item.name)
+                    object.delete_object(namespace_name=bucket.namespace, bucket_name=bucket.name,
+                                         object_name=item.name)
                 except Exception as e:
                     print("error deleting object : {} - {}".format(item.name, str(e)))
                     iteration += 1
@@ -108,7 +112,8 @@ def DeleteObjectVersions(config, signer, bucket):
 
     iteration = 0
     while more:
-        result = object.list_object_versions(namespace_name=bucket.namespace, bucket_name=bucket.name, limit=objectlimit)
+        result = object.list_object_versions(namespace_name=bucket.namespace, bucket_name=bucket.name,
+                                             limit=objectlimit)
         items = result.data.items
         if len(items) == 0:
             more = False
@@ -116,7 +121,8 @@ def DeleteObjectVersions(config, signer, bucket):
             for item in items:
                 print("Deleting {}:{}:{}".format(bucket.name, item.name, item.version_id))
                 try:
-                    object.delete_object(namespace_name=bucket.namespace, bucket_name=bucket.name, object_name=item.name, version_id=item.version_id)
+                    object.delete_object(namespace_name=bucket.namespace, bucket_name=bucket.name,
+                                         object_name=item.name, version_id=item.version_id)
                 except Exception as e:
                     print("error deleting object : {} - {}".format(item.name, str(e)))
                     iteration += 1
@@ -136,11 +142,13 @@ def DeleteReplication(config, signer, bucket):
     more = True
 
     while more:
-        result = object.list_replication_policies(namespace_name=bucket.namespace, bucket_name=bucket.name, limit=objectlimit)
+        result = object.list_replication_policies(namespace_name=bucket.namespace, bucket_name=bucket.name,
+                                                  limit=objectlimit)
         items = result.data
         for item in items:
             print("Deleting {}:{}".format(bucket.name, item.name))
-            object.delete_replication_policy(namespace_name=bucket.namespace, bucket_name=bucket.name, replication_id=item.id)
+            object.delete_replication_policy(namespace_name=bucket.namespace, bucket_name=bucket.name,
+                                             replication_id=item.id)
 
         if len(items) == objectlimit:
             more = True
@@ -155,21 +163,24 @@ def DeleteReplication(config, signer, bucket):
 def DeletePreauthenticated(config, signer, bucket):
     objectlimit = 20
     object = oci.object_storage.ObjectStorageClient(config, signer=signer)
-    print("Aborts an in-progress multipart upload and deletes all parts that have been uploaded in bucket: {}".format(bucket.name))
+    print("Aborts an in-progress multipart upload and deletes all parts that have been uploaded in bucket: {}".format(
+        bucket.name))
     more = True
 
     while more:
-        result = object.list_preauthenticated_requests(namespace_name=bucket.namespace, bucket_name=bucket.name, limit=objectlimit)
+        result = object.list_preauthenticated_requests(namespace_name=bucket.namespace, bucket_name=bucket.name,
+                                                       limit=objectlimit)
         items = result.data
         for item in items:
             print("Deleting {}:{}".format(bucket.name, item.name))
-            object.delete_preauthenticated_request(namespace_name=bucket.namespace, bucket_name=bucket.name, par_id=item.id)
+            object.delete_preauthenticated_request(namespace_name=bucket.namespace, bucket_name=bucket.name,
+                                                   par_id=item.id)
 
         if len(items) == objectlimit:
             more = True
         else:
             more = False
-    print("All Preauthenticated deleted!")
+    print("All Pre authenticated deleted!")
 
 
 ###########################################
@@ -178,18 +189,20 @@ def DeletePreauthenticated(config, signer, bucket):
 def AbortMultipartupload(config, signer, bucket):
     objectlimit = 20
     object = oci.object_storage.ObjectStorageClient(config, signer=signer)
-    print("Deleting Preauthenticated in bucket: {}".format(bucket.name))
+    print("Deleting Pre authenticated in bucket: {}".format(bucket.name))
     more = True
 
     while more:
-        result = object.list_multipart_uploads(namespace_name=bucket.namespace, bucket_name=bucket.name, limit=objectlimit)
+        result = object.list_multipart_uploads(namespace_name=bucket.namespace, bucket_name=bucket.name,
+                                               limit=objectlimit)
         items = result.data
         for item in items:
             print("Deleting {}:{}".format(bucket.name, item.object))
-            object.abort_multipart_upload(namespace_name=bucket.namespace, bucket_name=bucket.name, object_name=item.object, upload_id=item.upload_id)
+            object.abort_multipart_upload(namespace_name=bucket.namespace, bucket_name=bucket.name,
+                                          object_name=item.object, upload_id=item.upload_id)
 
         if len(items) == objectlimit:
             more = True
         else:
             more = False
-    print("All multipartupload deleted!")
+    print("All multi part upload deleted!")

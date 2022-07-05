@@ -17,7 +17,7 @@ def DeleteAPM(config, signer, compartments):
 
         items = oci.pagination.list_call_get_all_results(object.list_apm_domains, compartment_id=Compartment.id).data
         for item in items:
-            if (item.lifecycle_state != "TERMINATED"):
+            if item.lifecycle_state != "TERMINATED":
                 AllItems.append(item)
                 print("- {} - {}".format(item.display_name, item.lifecycle_state))
 
@@ -91,7 +91,7 @@ def DeleteSyntheticScripts(config, signer, compartment, apmDomain):
     print("Getting APM Synthetic Scripts for {}".format(apmDomain.display_name))
     items = oci.pagination.list_call_get_all_results(object.list_scripts, apm_domain_id=apmDomain.id).data
     for item in items:
-        if (item.lifecycle_state != "TERMINATED"):
+        if item.lifecycle_state != "TERMINATED":
             AllItems.append(item)
         print("- {} - {}".format(item.display_name, item.lifecycle_state))
 

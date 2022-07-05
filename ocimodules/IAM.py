@@ -5,6 +5,7 @@ import sys
 WaitRefresh = 10
 MaxIDeleteTagIteration = 5
 
+
 class OCICompartments:
     fullpath = ""
     level = 0
@@ -16,16 +17,17 @@ def GetCompartments(identity, rootID):
     while retry:
         retry = False
         try:
-            #print ("Getting compartments for {}".format(rootID))
-            compartments = oci.pagination.list_call_get_all_results(identity.list_compartments, compartment_id=rootID, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY).data
+            # print ("Getting compartments for {}".format(rootID))
+            compartments = oci.pagination.list_call_get_all_results(identity.list_compartments, compartment_id=rootID,
+                                                                    retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY).data
             return compartments
         except oci.exceptions.ServiceError as e:
             if e.status == 429:
-                print ("API busy.. retry", end = "\r")
+                print("API busy.. retry", end="\r")
                 retry = True
                 time.sleep(WaitRefresh)
             else:
-                print ("bad error!: " + e.message)
+                print("bad error!: " + e.message)
     return []
 
 
@@ -44,7 +46,8 @@ def Login(config, signer, startcomp):
     c = []
 
     # Adding Start compartment
-    compartment = identity.get_compartment(compartment_id=startcomp, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY).data
+    compartment = identity.get_compartment(compartment_id=startcomp,
+                                           retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY).data
     newcomp = OCICompartments()
     newcomp.details = compartment
     if config['tenancy'] == compartment.id:
@@ -93,7 +96,8 @@ def Login(config, signer, startcomp):
                                 if sub3.lifecycle_state == "ACTIVE":
                                     newcomp = OCICompartments()
                                     newcomp.details = sub3
-                                    newcomp.fullpath = "{}{}/{}/{}/{}".format(fullpath, subpath1, subpath2, subpath3, sub3.name)
+                                    newcomp.fullpath = "{}{}/{}/{}/{}".format(fullpath, subpath1, subpath2, subpath3,
+                                                                              sub3.name)
                                     newcomp.level = 4
                                     c.append(newcomp)
 
@@ -102,7 +106,7 @@ def Login(config, signer, startcomp):
                                     for sub4 in subcompartments4:
                                         if sub4.lifecycle_state == "ACTIVE":
                                             newcomp = OCICompartments()
-                                            newcomp.details = sub
+                                            newcomp.details = sub4
                                             newcomp.fullpath = "{}{}/{}/{}/{}/{}".format(fullpath, subpath1, subpath2,
                                                                                          subpath3, subpath4, sub4.name)
                                             newcomp.level = 5
@@ -115,12 +119,12 @@ def Login(config, signer, startcomp):
                                                     newcomp = OCICompartments()
                                                     newcomp.details = sub5
                                                     newcomp.fullpath = "{}{}/{}/{}/{}/{}/{}".format(fullpath,
-                                                                                                         subpath1,
-                                                                                                         subpath2,
-                                                                                                         subpath3,
-                                                                                                         subpath4,
-                                                                                                         subpath5,
-                                                                                                         sub5.name)
+                                                                                                    subpath1,
+                                                                                                    subpath2,
+                                                                                                    subpath3,
+                                                                                                    subpath4,
+                                                                                                    subpath5,
+                                                                                                    sub5.name)
                                                     newcomp.level = 6
                                                     c.append(newcomp)
 
@@ -188,12 +192,12 @@ def GetTenantName(config, signer):
 #              DeleteTagNameSpaces
 #################################################
 def DeleteTagNameSpaces(config, signer, compartments):
-
     AllItems = []
     object = oci.identity.IdentityClient(config, signer=signer)
 
     print("Getting all Tag Namespace objects")
     for C in compartments:
+        print(f"Getting Tag Namespace objects for compartment: {C.details}, {C.fullpath} , {C.level}")
         Compartment = C.details
         items = oci.pagination.list_call_get_all_results(object.list_tag_namespaces, compartment_id=Compartment.id).data
         if len(items) == 0:
@@ -240,9 +244,11 @@ def DeleteTagNameSpaces(config, signer, compartments):
                             except Exception as e:
                                 print("failed, trying again... {} ".format(str(e)))
                         else:
-                            print("Waiting for tag {} to finish deleting, status={}".format(itemstatus.name, itemstatus.lifecycle_state))
+                            print("Waiting for tag {} to finish deleting, status={}".format(itemstatus.name,
+                                                                                            itemstatus.lifecycle_state))
 
-            print("Waiting for all Objects to be deleted..." + (" Iteration " + str(iteration) + " of " + str(MaxIDeleteTagIteration) if iteration > 0 else ""))
+            print("Waiting for all Objects to be deleted..." + (
+                " Iteration " + str(iteration) + " of " + str(MaxIDeleteTagIteration) if iteration > 0 else ""))
             time.sleep(WaitRefresh)
             iteration += 1
 
@@ -275,7 +281,8 @@ def DeleteCompartments(config, signer, compartments, startcomp):
                         object.delete_compartment(compartment_id=Compartment.id)
                         print("{} Deleted compartment: {}".format(timestr, C.fullpath))
                     except:
-                        print("{} Delaying - retry attempt {} .. api calls           ".format(timestr, retrycount), end = "\r")
+                        print("{} Delaying - retry attempt {} .. api calls           ".format(timestr, retrycount),
+                              end="\r")
                         time.sleep(10)
                         retrycount = retrycount + 1
                         retry = True
@@ -307,11 +314,11 @@ def DeletePolicies(config, signer, compartments):
 #              DeleteTagDefaults
 #################################################
 def DeleteTagDefaults(config, signer, compartments):
-
     object = oci.identity.IdentityClient(config, signer=signer)
 
     print("Getting all Policy objects")
     for C in compartments:
+        print(f"Getting DeleteTagDefaults objects for compartment: {C.details}, {C.fullpath} , {C.level}")
         Compartment = C.details
         items = oci.pagination.list_call_get_all_results(object.list_tag_defaults, compartment_id=Compartment.id).data
         for item in items:

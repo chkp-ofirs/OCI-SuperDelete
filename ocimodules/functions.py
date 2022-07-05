@@ -9,14 +9,13 @@ import sys
 # define our clear function
 ##########################################################################
 def clear():
-
     # for windows
-    if name == 'nt':
-        _ = system('cls')
+    if os.name == 'nt':
+        _ = os.system('cls')
 
     # for mac and linux(here, os.name is 'posix')
     else:
-        _ = system('clear')
+        _ = os.system('clear')
 
 
 ##########################################################################
@@ -35,14 +34,19 @@ def print_header(name, category):
 # input_command_line
 ##########################################################################
 def input_command_line(help=False):
-    parser = argparse.ArgumentParser(formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=80, width=130))
+    parser = argparse.ArgumentParser(
+        formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=80, width=130))
     parser.add_argument('-cp', default="", dest='config_profile', help='Config Profile inside the config file')
-    parser.add_argument('-ip', action='store_true', default=False, dest='is_instance_principals', help='Use Instance Principals for Authentication')
-    parser.add_argument('-dt', action='store_true', default=False, dest='is_delegation_token', help='Use Delegation Token for Authentication')
+    parser.add_argument('-ip', action='store_true', default=False, dest='is_instance_principals',
+                        help='Use Instance Principals for Authentication')
+    parser.add_argument('-dt', action='store_true', default=False, dest='is_delegation_token',
+                        help='Use Delegation Token for Authentication')
     parser.add_argument('-log', default="log.txt", dest='log_file', help='output log file')
-    parser.add_argument('-force', action='store_true', default=False, dest='force', help='force delete without confirmation')
+    parser.add_argument('-force', action='store_true', default=False, dest='force',
+                        help='force delete without confirmation')
     parser.add_argument('-debug', action='store_true', default=False, dest='debug', help='Enable debug')
-    parser.add_argument('-skip_delete_compartment', action='store_true', default=False, dest='skip_delete_compartment', help='Skip Deleting the compartment at the end')
+    parser.add_argument('-skip_delete_compartment', action='store_true', default=False, dest='skip_delete_compartment',
+                        help='Skip Deleting the compartment at the end')
     parser.add_argument("-rg", default="", dest='regions', help="Regions to delete comma separated")
     parser.add_argument("-c", default="", dest='compartment', help="top level compartment id to delete")
     cmd = parser.parse_args()
@@ -51,13 +55,13 @@ def input_command_line(help=False):
 
     return cmd
 
+
 ##########################################################################
 # Create signer for Authentication
 # Input - config_profile and is_instance_principals and is_delegation_token
 # Output - config and signer objects
 ##########################################################################
 def create_signer(config_profile, is_instance_principals, is_delegation_token):
-
     # if instance principals authentications
     if is_instance_principals:
         try:
@@ -126,7 +130,6 @@ def create_signer(config_profile, is_instance_principals, is_delegation_token):
         return config, signer
 
 
-
 ##########################################################################
 # Checking SDK Version
 # Minimum version requirements for OCI SDK
@@ -142,10 +145,9 @@ def check_oci_version(min_oci_version_required):
             break
 
     if outdated:
-        print("Your version of the OCI SDK is out-of-date. Please first upgrade your OCI SDK Library bu running the command:")
+        print(
+            "Your version of the OCI SDK is out-of-date. Please first upgrade your OCI SDK Library bu running the command:")
         print("OCI SDK Version : {}".format(oci.__version__))
         print("Min SDK required: {}".format(min_oci_version_required))
         print("pip install --upgrade oci")
         quit()
-
-
