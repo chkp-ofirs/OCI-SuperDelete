@@ -84,7 +84,7 @@ def DeleteSubnets(config, signer, Compartments, vcn):
     query = "query subnet resources where vcnId= '{}'".format(vcn.id)
     items = ocimodules.Search.SearchResources(config, signer, query)
     for item in items:
-        if (item.lifecycle_state != "TERMINATED"):
+        if item.lifecycle_state != "TERMINATED":
             AllItems.append(item)
 
     itemsPresent = True
@@ -103,7 +103,7 @@ def DeleteSubnets(config, signer, Compartments, vcn):
                         except Exception:
                             print("error trying to delete: {}".format(itemstatus.display_name))
                     else:
-                        printd("{} = {}".format(itemstatus.display_name, itemstatus.lifecycle_state))
+                        print("{} = {}".format(itemstatus.display_name, itemstatus.lifecycle_state))
                     count = count + 1
             except Exception:
                 print("error deleting {}, probably already deleted".format(item.display_name))
@@ -133,7 +133,7 @@ def DeleteDHCPoptions(config, signer, Compartments, vcn):
         try:
             items = oci.pagination.list_call_get_all_results(object.list_dhcp_options, compartment_id=compartment.id, vcn_id=vcn.id, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY).data
             for item in items:
-                if (item.lifecycle_state != "TERMINATED"):
+                if item.lifecycle_state != "TERMINATED":
                     AllItems.append(item)
                 print("- {} - {}".format(item.display_name, item.lifecycle_state))
         except Exception:
@@ -187,7 +187,7 @@ def DeleteSecurityLists(config, signer, Compartments, vcn):
         try:
             items = oci.pagination.list_call_get_all_results(object.list_security_lists, compartment_id=compartment.id, vcn_id=vcn.id, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY).data
             for item in items:
-                if (item.lifecycle_state != "TERMINATED"):
+                if item.lifecycle_state != "TERMINATED":
                     AllItems.append(item)
                 print("- {} - {}".format(item.display_name, item.lifecycle_state))
         except Exception:
@@ -241,7 +241,7 @@ def DeleteSecurityGroups(config, signer, Compartments, vcn):
         try:
             items = oci.pagination.list_call_get_all_results(object.list_network_security_groups, compartment_id=compartment.id, vcn_id=vcn.id, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY).data
             for item in items:
-                if (item.lifecycle_state != "TERMINATED"):
+                if item.lifecycle_state != "TERMINATED":
                     AllItems.append(item)
                 print("- {} - {}".format(item.display_name, item.lifecycle_state))
         except Exception:
@@ -295,7 +295,7 @@ def DeleteRouteTables(config, signer, Compartments, vcn):
         try:
             items = oci.pagination.list_call_get_all_results(object.list_route_tables, compartment_id=compartment.id, vcn_id=vcn.id, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY).data
             for item in items:
-                if (item.lifecycle_state != "TERMINATED"):
+                if item.lifecycle_state != "TERMINATED":
                     AllItems.append(item)
                     details = oci.core.models.UpdateRouteTableDetails()
                     details.route_rules = []
@@ -394,7 +394,7 @@ def DeleteLoadBalancers(config, signer, compartment):
     print("Getting all Load Balancer objects")
     items = oci.pagination.list_call_get_all_results(object.list_load_balancers, compartment_id=compartment.id).data
     for item in items:
-        if (item.lifecycle_state != "DELETED"):
+        if item.lifecycle_state != "DELETED":
             AllItems.append(item)
             print("- {} - {}".format(item.display_name, item.lifecycle_state))
 
@@ -442,7 +442,7 @@ def DeleteReservedIPs(config, signer, compartment):
     items = oci.pagination.list_call_get_all_results(object.list_public_ips, scope="REGION", compartment_id=compartment.id, lifetime="RESERVED").data
 
     for item in items:
-        if (item.lifecycle_state != "TERMINATED"):
+        if item.lifecycle_state != "TERMINATED":
             AllItems.append(item)
         print("- {} - {}".format(item.display_name, item.lifecycle_state))
 
@@ -493,7 +493,7 @@ def DeleteInternetGateways(config, signer, Compartments, vcn):
         try:
             items = oci.pagination.list_call_get_all_results(object.list_internet_gateways, compartment_id=compartment.id, vcn_id=vcn.id, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY).data
             for item in items:
-                if (item.lifecycle_state != "TERMINATED"):
+                if item.lifecycle_state != "TERMINATED":
                     AllItems.append(item)
                 print("- {} - {}".format(item.display_name, item.lifecycle_state))
         except Exception:
@@ -547,7 +547,7 @@ def DeleteServiceGateways(config, signer, Compartments, vcn):
         try:
             items = oci.pagination.list_call_get_all_results(object.list_service_gateways, compartment_id=compartment.id, vcn_id=vcn.id, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY).data
             for item in items:
-                if (item.lifecycle_state != "TERMINATED"):
+                if item.lifecycle_state != "TERMINATED":
                     AllItems.append(item)
                 print("- {} - {}".format(item.display_name, item.lifecycle_state))
         except Exception:
@@ -601,7 +601,7 @@ def DeleteNATGateways(config, signer, Compartments, vcn):
         try:
             items = oci.pagination.list_call_get_all_results(object.list_nat_gateways, compartment_id=compartment.id, vcn_id=vcn.id, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY).data
             for item in items:
-                if (item.lifecycle_state != "TERMINATED"):
+                if item.lifecycle_state != "TERMINATED":
                     AllItems.append(item)
                 print("- {} - {}".format(item.display_name, item.lifecycle_state))
         except Exception:
@@ -655,7 +655,7 @@ def DeleteLocalPeeringGateways(config, signer, Compartments, vcn):
         try:
             items = oci.pagination.list_call_get_all_results(object.list_local_peering_gateways, compartment_id=compartment.id, vcn_id=vcn.id, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY).data
             for item in items:
-                if (item.lifecycle_state != "TERMINATED"):
+                if item.lifecycle_state != "TERMINATED":
                     AllItems.append(item)
                 print("- {} - {}".format(item.display_name, item.lifecycle_state))
         except Exception:
@@ -710,7 +710,7 @@ def DeleteDRGs(config, signer, compartment):
         items = []
 
     for item in items:
-        if (item.lifecycle_state != "TERMINATED"):
+        if item.lifecycle_state != "TERMINATED":
             AllItems.append(item)
         print("- {} - {}".format(item.display_name, item.lifecycle_state))
 
@@ -870,7 +870,7 @@ def DeleteIPSecConnections(config, signer, compartment):
         items = []
 
     for item in items:
-        if (item.lifecycle_state != "TERMINATED"):
+        if item.lifecycle_state != "TERMINATED":
             AllItems.append(item)
         print("- {} - {}".format(item.display_name, item.lifecycle_state))
 

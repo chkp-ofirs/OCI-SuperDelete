@@ -53,8 +53,7 @@ def DeleteAny(config, signer, Compartments, ServiceClient, ServiceName, ServiceI
         
         except oci.exceptions.ServiceError as response:
             if response.code == 404:
-                print ("No items found in compartment {}   ".format(Compartment.name), end = "\r")
-                print("No items found", end="\r")
+                print("No items found in compartment {}".format(Compartment.name), end="\r")
                 items = []
         for item in items:
             # Delete objects that do not have lifecycle management status
@@ -98,7 +97,9 @@ def DeleteAny(config, signer, Compartments, ServiceClient, ServiceName, ServiceI
                     count = 0
                     for item in AllItems:
                         try:
-                            itemstatus = eval("object.{}({}=item.{}{}, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY).data".format(GetCommand, ServiceID, ReturnServiceID, Extra))
+                            itemstatus = eval(
+                                "object.{}({}=item.{}{}, retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY).data".format(
+                                    GetCommand, ServiceID, ReturnServiceID, Extra))
                             if itemstatus.lifecycle_state.lower() != DelState.lower():
                                 if itemstatus.lifecycle_state.lower() != DelingSate.lower():
                                     try:
@@ -118,7 +119,8 @@ def DeleteAny(config, signer, Compartments, ServiceClient, ServiceName, ServiceI
                                         else:
                                             print("error {}-{} trying to delete: {} - {}".format(response.code,
                                                                                                  response.message,
-                                                                                                 C.fullpath, eval("itemstatus.{}".format(ObjectNameVar))))
+                                                                                                 C.fullpath, eval(
+                                                    "itemstatus.{}".format(ObjectNameVar))))
                                 else:
                                     print("{} is {}".format(eval("itemstatus.{}".format(ObjectNameVar)),
                                                             itemstatus.lifecycle_state), end="\r")
@@ -135,7 +137,9 @@ def DeleteAny(config, signer, Compartments, ServiceClient, ServiceName, ServiceI
                                                                                                         item.lifecycle_state))
                     
                     if count > 0:
-                        print("Waiting for all " + ServiceName + " Objects to be deleted..." + (" Iteration " + str(iteration) + " of " + str(MaxIDeleteIteration) if iteration > 0 else ""), end="\r")
+                        print("Waiting for all " + ServiceName + " Objects to be deleted..." + (
+                            " Iteration " + str(iteration) + " of " + str(
+                                MaxIDeleteIteration) if iteration > 0 else ""), end="\r")
                         time.sleep(WaitRefresh)
                         iteration += 1
                         
